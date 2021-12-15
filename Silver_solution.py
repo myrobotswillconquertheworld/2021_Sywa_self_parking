@@ -29,8 +29,7 @@ robot = DriveBase(left_motor,right_motor,160,114)
 
 
 dist_park = 0
-a = 0 
-b = 0
+
 
 while dist_park < 470 :  # tant que la distance de stationnement n'est pas au minimum égal à 47 cm le robot continue la boucle 
     robot.drive(100,0   )
