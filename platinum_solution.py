@@ -1,3 +1,17 @@
+# Copyright 2022 SYWA TEAM
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files 
+# (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish,
+#  distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY
+# , FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, 
+# WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+
 #!/usr/bin/env pybricks-micropython
 from pybricks.hubs import EV3Brick
 from pybricks.ev3devices import (Motor, TouchSensor, ColorSensor,
@@ -38,8 +52,8 @@ color_sensor = ColorSensor(Port.S4)
 
 robot = DriveBase(left_motor,right_motor,160,114)
 
-depth = 0
 
+no_obst = 0
 dist_park = 0
 a = 0 
 
@@ -72,6 +86,7 @@ while dist_park < 470 :  # while the distance of parking is below 47cm we contin
     robot.reset() # we reset the robot to reset all parameters like distance 
 
     dist_park = robot.distance() # we initiate the distance the robot will travel
+    print("distpark",dist_park )
 
     robot.drive(100,0)
 
@@ -93,16 +108,23 @@ while dist_park < 470 :  # while the distance of parking is below 47cm we contin
             direction_motor.run_angle(70, 7, then=Stop.HOLD, wait=True)
 
         # depth calculate just once ( doesnt work ) get false value 
-        if depth == 0 :
-            depth = side_sensor.distance()
+        #if depth == 0 :
+         #   depth = side_sensor.distance()
         
+        print("distpark", robot.distance())
+
+
+        # If there is no obstacle for 60cm we park
+        if robot.distance() >= 600 :
+            no_obst = 1
+            break
       
         True
 
     dist_park = robot.distance() + 50 # distance calculate when the robot detects an obstacle (50 error adjustment)
- 
+    print("distpark final",dist_park )
 
-    if dist_park >= 350 and dist_park <= 450 and depth >= 450 : # if the distance of park is below 45 cm and above 35 cm we will park in a perpendicular way 
+    if dist_park >= 350 and dist_park <= 450 : #and depth >= 450 : # if the distance of park is below 45 cm and above 35 cm we will park in a perpendicular way 
         
         
         a=1 # put the variable at 1 that allow the program to go in the parallel method
@@ -119,10 +141,13 @@ if a == 0 :
     #---------------------Calculation for right distance and right position of the car---------------------------------------------#
 
     Rmin = 23.36    # the turning Radius of the circle done by the car using the steering angle 64 degrees
+    if no_obst == 1:
+        yi = 8 + 8.75 + 2 
+    elif no_obst == 0 :
+         sensor_value = side_sensor.distance(True) *0.1 # side sensor value 
+         yi = sensor_value + 8.75 +  2 # initial lateral position; 8.75 = width/2 ; 2 = distance between sensor and wheel
 
-    sensor_value = side_sensor.distance(True) *0.1 # side sensor value 
-
-    yi = sensor_value + 8.75 +  2 # initial lateral position; 8.75 = width/2 ; 2 = distance between sensor and wheel
+   
 
     xi = 43 + 2.7 # initial longitudinal position aligned wheels + p(radius of wheel)
 
@@ -223,15 +248,21 @@ if a==1 :
 
     Rmin = 23.36    # the turning Radius of the circle done by the car using the steering angle 64 degrees
 
-    sensor_value = side_sensor.distance(True) *0.1 # side sensor value 
+    if no_obst == 1:
+        yi = 80 + 8.75 + 2 
+        sensor_value = 8 
+    elif no_obst == 0 :
+         sensor_value = side_sensor.distance(True) *0.1 # side sensor value 
+         yi = sensor_value + 8.75 +  2 # initial lateral position; 8.75 = width/2 ; 2 = distance between sensor and wheel
+
+
 
     s= Rmin - sensor_value - 2 - 8.75 
 
     OD = math.sqrt(pow((Rmin-8.75),2)-pow(s,2))
 
-
-    yi = sensor_value + 8.75 +  2 # initial lateral position; 8.75 = width/2 ; 2 = distance between sensor and wheel
-
+    
+   
     xi = 35 + 2.7 # initial longitudinal position aligned wheels + p(radius of wheel)
 
     yc_2 = yi - Rmin #  lateral position of the imaginary circle done with the turning radius
